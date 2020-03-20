@@ -1,0 +1,109 @@
+const int Trigger = 16;   //Trigger del sensor
+const int Echo = 5;   //Echo del sensor
+const int Salto = 0; //Me permite salir del bucle de ifs cuando uno de ellos se cumple, para que no realize los ifs en cadena.
+const int Espera = 0; //Detención del coche para realizar medidas
+byte Past = 0;        //Esta variable me permite almacenar la acción que el coche ha realizado anteriormente, de esta forma actuará conforme a lo ocurrido en el pasado y las lecturas en el presente.
+
+void setup() {
+  Serial.begin(9600);//Iniciamos el puerto serie
+  pinMode(Trigger, OUTPUT); //pin como salida
+  pinMode(Echo, INPUT);  //pin como entrada
+  digitalWrite(Trigger, LOW);//Inicializamos el pin con 0
+  pinMode(4,OUTPUT);
+}
+
+void loop()
+{
+ 
+  long t; //tiempo que demora en llegar el eco (Sensor de ultrasonidos)
+  long d; //distancia en centimetros           (Sensor de ultrasonidos)
+
+  digitalWrite(Trigger, HIGH);
+  delayMicroseconds(10);          //Enviamos un pulso de 10us
+  digitalWrite(Trigger, LOW);
+  
+  t = pulseIn(Echo, HIGH); //obtenemos el ancho del pulso
+  d = t/59;             //Obtenemos la distancia en cm
+  
+  Serial.print("Distancia: ");
+  Serial.print(d);      //Enviamos serialmente el valor de la distancia
+  Serial.print("cm");
+  Serial.println();
+  delay(2000);       
+
+//1º El coche se encuentra con su primera pared
+  if(d <= 20 && Past == 0){
+     Serial.println("1ªGiro a la izquierda 90º");
+     delay(2000);
+     Past = 1;
+    goto Salto;   
+  }
+
+//2º El coche se encuentra con la 2º pared, gira 90º y se detiene para medir la distancia que hay de la siguiente pared
+  if(d <= 20 && Past == 1){
+     Serial.println("2ª Giro a la izquierda 90º");
+     delay(1000);
+     Past = 2;  
+     Serial.println("Paro del coche para realizar mediciones");
+     goto Espera;  
+  }
+    
+//3º Si la distancia de la siguiente pared es igual o inferior a 30cm, da un giro de 180º y avanza.
+  if(d <= 30 && Past == 2){
+     Serial.println("3ªGiro  180º");
+     delay(2000);
+     Past = 3;    
+     goto Salto;   
+  }
+
+//4º Si la distancia de la siguiente pared es superior a 30cm, avanza 2 segundos, gira 90º hacia la izquierda y avanza.
+  if(d > 30 && Past == 2){
+     Serial.println("4ªAvanzar 2 segundos");
+     delay(2000);
+     Serial.println("4ªGiro a la izquierda 90º");
+     delay(1000);
+     Past = 3;   
+     goto Salto;     
+  }
+
+//5º Cuando se encuentre con la siguiente pared girará 90º a la derecha y se parará para medir la distancia con la siguiente pared.
+if(d <= 20 && Past == 3){
+     Serial.println("5ªGiro a la derecha 90º");
+     delay(1000);
+     Past = 4;
+     Serial.println("Paro del coche para realizar mediciones");      
+     goto Espera; 
+  }
+
+//6º Si la distancia de la siguiente pared es igual o inferior a 30cm, da un giro de 180º y avanza.
+if(d <= 30 && Past == 4){
+     Serial.println("6ªGiro 180º");
+     delay(2000);
+     Past = 1;  
+     goto Salto;      
+  }
+
+//7º Si la distancia de la siguiente pared es superior a 30cm, avanza 2 segundos, gira 90º hacia la derecha y avanza.
+if(d > 30 && Past == 4){
+     Serial.println("7ªAvanzar 2 segundos");
+     delay(2000);
+     Serial.println("7ªGiro a la derecha 90º");
+     delay(1000);
+     Past = 1;   
+     goto Salto;      
+  }
+
+else{ //Este else me permite mantener el coche avanzando si ningún if se cumple.
+  Salto:; //Me permite salir del bucle de ifs cuando uno de ellos se cumple, para que no realize los ifs en cadena.
+  Serial.println("Forward movement");
+}
+
+Espera:;{ //Utilizado para saltar el Forward movement del else. (No queremos que el coche siga avanzando porque va a realizar la medición con la siguiente pared).
+}
+
+Serial.print("Past:");
+Serial.print(Past);
+Serial.println();
+delay(2000);
+  
+}
