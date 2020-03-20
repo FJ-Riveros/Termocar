@@ -2,6 +2,8 @@
 
 Details:
 
+-The code of this project must be uploaded and executed with the IDE from Arduino, otherwise it can't be uploaded to the Node MCU.
+
 -The 2WD car can be controlled remotely with the direction buttons displayed in the local Web, as long as the car stays within the range of the WI-FI connection.
 
 -The car contains numerous sensors: Temperature, Humidity and an Atmospheric pressure. The collected data from this sensors is displayed at the local Web in real time.
